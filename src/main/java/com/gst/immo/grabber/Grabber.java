@@ -1,22 +1,46 @@
 package com.gst.immo.grabber;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
+import com.opencsv.CSVWriter;
 
-public class Grabber {
 
-   public static Logger _log = Logger.getLogger(Grabber.class);
+public class Grabber implements Closeable {
+
+   private static final String WWW_IMMOBILIENSCOUT24_DE = "www.immobilienscout24.de";
+   public static Logger        _log                     = Logger.getLogger(Grabber.class);
+   private CSVWriter           _csvWriter;
+
+   public void init() throws IOException {
+      File targetDir = new File("logs");
+      if ( !targetDir.exists() ) {
+         targetDir.mkdirs();
+      }
+      _csvWriter = new CSVWriter(new FileWriter(targetDir.getAbsolutePath() + "\\results.csv"), '\t');
+      _csvWriter.writeNext(new String[] { "id", "price", "rooms", "wohnflaeche", "grundstueck", "haustyp", "hausgeld", "baujahr", "address" });
+   }
+
+   @Override
+   public void close() throws IOException {
+      _csvWriter.close();
+   }
 
    private void loadPage( String urlStr ) throws IOException {
       URL url = new URL(urlStr);
@@ -34,7 +58,7 @@ public class Grabber {
       System.out.println(finalHTML);
    }
 
-   private void parsePage( String urlStr ) throws IOException {
+   private void parseExposePage( String urlStr ) throws IOException {
       Document doc = Jsoup.connect(urlStr).get();
 
       String id = getSimpleFieldData(doc, "ul.is24-ex-id");
@@ -49,15 +73,17 @@ public class Grabber {
 
       //      addressNode.forEach(e -> System.out.println(e));
 
-      System.out.println("ID: " + id);
-      System.out.println("Price: " + price);
-      System.out.println("Rooms: " + rooms);
-      System.out.println("Wohnflaeche: " + wohnflaeche);
-      System.out.println("Grundstueck: " + grundstueck);
-      System.out.println("Haustyp: " + haustyp);
-      System.out.println("Address: " + address);
-      System.out.println("Hausgeld: " + hausgeld);
-      System.out.println("Baujahr: " + baujahr);
+      _csvWriter.writeNext(new String[] { id, price, rooms, wohnflaeche, grundstueck, haustyp, hausgeld, baujahr, address });
+
+      //      System.out.println("ID: " + id);
+      //      System.out.println("Price: " + price);
+      //      System.out.println("Rooms: " + rooms);
+      //      System.out.println("Wohnflaeche: " + wohnflaeche);
+      //      System.out.println("Grundstueck: " + grundstueck);
+      //      System.out.println("Haustyp: " + haustyp);
+      //      System.out.println("Address: " + address);
+      //      System.out.println("Hausgeld: " + hausgeld);
+      //      System.out.println("Baujahr: " + baujahr);
    }
 
    private String getSimpleFieldData( Document doc, String cssQuery ) {
@@ -81,13 +107,80 @@ public class Grabber {
       return null;
    }
 
+   private List<String> extractPageInformation( String urlStr ) throws IOException {
+      List<String> result = new ArrayList<String>();
+      Document doc = Jsoup.connect(urlStr).get();
+      Elements elements = doc.select("div#pageSelection select option");
+      elements.forEach(e -> result.add(buildSearchUrlFromPageLink(e.attr("value"))));
+      return result;
+   }
+
+   private void processQuery( String urlStr ) throws IOException {
+      List<String> pageInformation = extractPageInformation(urlStr);
+      if ( pageInformation.isEmpty() ) {
+         parseQueryPage(urlStr);
+      } else {
+         for ( String queryPage : pageInformation ) {
+            parseQueryPage(queryPage);
+         }
+      }
+
+   }
+
+   private void parseQueryPage( String urlStr ) throws IOException {
+      //      loadPage(urlStr);
+      Document doc = Jsoup.connect(urlStr).get();
+      Elements elements = doc.select("ul#resultListItems article div.result-list-entry__data a");
+      List<String> links = new ArrayList<String>();
+      elements.forEach(e -> links.add(e.attr("href")));
+
+      Set<Long> exposeIds = new HashSet<Long>();
+      links.forEach(link -> exposeIds.add(parseExposeLinkId(link)));
+
+      for ( Long exposeId : exposeIds ) {
+         if ( exposeId != null ) {
+            processExpose(exposeId);
+         }
+      }
+   }
+
+   private void processExpose( long exposeId ) throws IOException {
+      _log.info("Start parsing exposeId: " + exposeId);
+      String exposeUrl = buildExposeUrl(exposeId);
+      parseExposePage(exposeUrl);
+   }
+
+   private static Long parseExposeLinkId( String link ) {
+      String prefix = "/expose/";
+      if ( link.startsWith(prefix) ) {
+         link = link.substring(prefix.length());
+         try {
+            Long l = Long.parseLong(link);
+            return l;
+         }
+         catch ( NumberFormatException nfe ) {}
+      }
+      return null;
+   }
+
+   private static String buildSearchUrlFromPageLink( String pageLink ) {
+      return "http://" + WWW_IMMOBILIENSCOUT24_DE + pageLink;
+   }
+
+   private static String buildExposeUrl( long exposeId ) {
+      return "http://" + WWW_IMMOBILIENSCOUT24_DE + "/expose/" + exposeId;
+   }
 
    public static void main( String[] args ) throws IOException {
       Grabber grabber = new Grabber();
+      grabber.init();
       //      String urlStr = "http://www.immobilienscout24.de/expose/87092546?PID=56199115&ftc=9004EXPXXUA&utm_medium=email&utm_source=system&utm_campaign=default_fulfillment&utm_content=default_expose&CCWID=$CWID_CONTACT$";
-      String urlStr = "http://www.immobilienscout24.de/expose/81752382";
+      //      String urlStr = "http://www.immobilienscout24.de/expose/81752382";
+      String urlStr = "http://www.immobilienscout24.de/Suche/S-T/Wohnung-Kauf/Baden-Wuerttemberg/Karlsruhe/Daxlanden";
       // grabber.loadPage(urlStr);
-      grabber.parsePage(urlStr);
+      grabber.processQuery(urlStr);
+      grabber.close();
    }
+
 
 }
