@@ -34,7 +34,8 @@ public class Grabber implements Closeable {
          targetDir.mkdirs();
       }
       _csvWriter = new CSVWriter(new FileWriter(targetDir.getAbsolutePath() + "\\results.csv"), '\t');
-      _csvWriter.writeNext(new String[] { "id", "price", "rooms", "wohnflaeche", "grundstueck", "haustyp", "hausgeld", "baujahr", "address" });
+      _csvWriter.writeNext(
+         new String[] { "id", "name", "urlStr", "price", "rooms", "wohnflaeche", "grundstueck", "haustyp", "hausgeld", "baujahr", "address", "breadCrumb" });
    }
 
    @Override
@@ -62,6 +63,7 @@ public class Grabber implements Closeable {
       Document doc = Jsoup.connect(urlStr).get();
 
       String id = getSimpleFieldData(doc, "ul.is24-ex-id");
+      String name = getSimpleFieldData(doc, "h1#expose-title");
       String price = getSimpleFieldData(doc, "div.is24qa-kaufpreis");
       String rooms = getSimpleFieldData(doc, "div.is24qa-zi");
       String wohnflaeche = getSimpleFieldData(doc, Arrays.asList("div.is24qa-wohnflaeche", "dd.is24qa-wohnflaeche-ca"));
@@ -70,10 +72,11 @@ public class Grabber implements Closeable {
       String hausgeld = getSimpleFieldData(doc, "dd.is24qa-hausgeld");
       String baujahr = getSimpleFieldData(doc, "dd.is24qa-baujahr");
       String address = getSimpleFieldData(doc, "div.address-block");
+      String breadCrumb = getBreadCrumb(doc);
 
-      //      addressNode.forEach(e -> System.out.println(e));
-
-      _csvWriter.writeNext(new String[] { id, price, rooms, wohnflaeche, grundstueck, haustyp, hausgeld, baujahr, address });
+      wohnflaeche = proc_wohnflaeche_checkMsquared(wohnflaeche);
+      address = proc_address(address);
+      _csvWriter.writeNext(new String[] { id, name, urlStr, price, rooms, wohnflaeche, grundstueck, haustyp, hausgeld, baujahr, address, breadCrumb });
 
       //      System.out.println("ID: " + id);
       //      System.out.println("Price: " + price);
@@ -84,6 +87,26 @@ public class Grabber implements Closeable {
       //      System.out.println("Address: " + address);
       //      System.out.println("Hausgeld: " + hausgeld);
       //      System.out.println("Baujahr: " + baujahr);
+   }
+
+   private String getBreadCrumb( Document doc ) {
+      Elements elements = doc.select("div#is24-main");
+      return elements.first().child(0).child(0).text();
+   }
+
+   private String proc_address( String address ) {
+      String sf = "Die vollständige Adresse der Immobilie erhalten Sie vom Anbieter.";
+      if ( address.contains(sf) ) {
+         address = address.replace(sf, "");
+      }
+      return address;
+   }
+
+   private String proc_wohnflaeche_checkMsquared( String wohnflaeche ) {
+      if ( wohnflaeche.contains(" m²") ) {
+         wohnflaeche = wohnflaeche.replace(" m²", "");
+      }
+      return wohnflaeche;
    }
 
    private String getSimpleFieldData( Document doc, String cssQuery ) {
