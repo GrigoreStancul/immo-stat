@@ -1,0 +1,2 @@
+# immo-stat
+Immobility statistics
