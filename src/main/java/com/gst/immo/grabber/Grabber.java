@@ -12,45 +12,36 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.hibernate.SessionFactory;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.gst.immo.db.ExposeBase;
-import com.gst.immo.db.ExposeBaseDAO;
+import com.gst.immo.db.ImmoDAO;
 import com.gst.immo.db.Query;
-import com.gst.immo.db.QueryDAO;
 import com.gst.immo.db.SubQuery;
-import com.gst.immo.db.SubQueryDAO;
 import com.gst.immo.db.SubqueryToExpose;
-import com.gst.immo.db.SubqueryToExposeDAO;
-import com.gst.immo.utils.HibernateUtils;
 
 public class Grabber implements Closeable {
 
 	private static final String WWW_IMMOBILIENSCOUT24_DE = "www.immobilienscout24.de";
 	public static Logger _log = Logger.getLogger(Grabber.class);
-	private SessionFactory _sessionFactory;
 	private ClassPathXmlApplicationContext _springContext;
-	private QueryDAO _queryDAO;
-	private SubQueryDAO _subQueryDAO;
-	private ExposeBaseDAO _exposeBaseDAO;
-	private SubqueryToExposeDAO _subqueryToExposeDAO;
+	private ImmoDAO _immoDAO;
+	private int _exposeNumber = 0;
+
+	public static String buildExposeUrl(long exposeId) {
+		return "http://" + WWW_IMMOBILIENSCOUT24_DE + "/expose/" + exposeId;
+	}
 
 	public void init() throws IOException {
-		_sessionFactory = HibernateUtils.getSessionFactory();
 		_springContext = new ClassPathXmlApplicationContext("spring.xml");
-		_queryDAO = _springContext.getBean(QueryDAO.class);
-		_subQueryDAO = _springContext.getBean(SubQueryDAO.class);
-		_exposeBaseDAO = _springContext.getBean(ExposeBaseDAO.class);
-		_subqueryToExposeDAO = _springContext.getBean(SubqueryToExposeDAO.class);
+		_immoDAO = _springContext.getBean(ImmoDAO.class);
 	}
 
 	@Override
 	public void close() throws IOException {
-		_sessionFactory.close();
 		_springContext.close();
 	}
 
@@ -82,7 +73,7 @@ public class Grabber implements Closeable {
 		SubQuery subQuery = new SubQuery();
 		subQuery.setQuery(query);
 		subQuery.setSubQuery(urlStr);
-		_subQueryDAO.persist(subQuery);
+		_immoDAO.getSubQueryDAO().persist(subQuery);
 
 		Document doc = Jsoup.connect(urlStr).get();
 		Elements elements = doc.select("ul#resultListItems article div.result-list-entry__data a");
@@ -100,8 +91,9 @@ public class Grabber implements Closeable {
 	}
 
 	private void processExpose(SubQuery subQuery, long exposeId) {
-		_log.info("Start parsing exposeId: " + exposeId);
-		ExposeBase exposeBase = _exposeBaseDAO.get(exposeId);
+		_exposeNumber++;
+		_log.info("Start parsing " + _exposeNumber + " expose. ExposeId: " + exposeId);
+		ExposeBase exposeBase = _immoDAO.getExposeBaseDAO().get(exposeId);
 
 		String status = "allreadyexists";
 		if (exposeBase == null) {
@@ -118,14 +110,14 @@ public class Grabber implements Closeable {
 			exposeBase = new ExposeBase();
 			exposeBase.setExposeId(exposeId);
 			exposeBase.setHtmlPage(loadedPage);
-			_exposeBaseDAO.persist(exposeBase);
+			_immoDAO.getExposeBaseDAO().persist(exposeBase);
 		}
 
 		SubqueryToExpose subqueryToExpose = new SubqueryToExpose();
 		subqueryToExpose.setExposeBase(exposeBase);
 		subqueryToExpose.setSubQuery(subQuery);
 		subqueryToExpose.setStatus(status);
-		_subqueryToExposeDAO.persist(subqueryToExpose);
+		_immoDAO.getSubqueryToExposeDAO().persist(subqueryToExpose);
 	}
 
 	private static Long parseExposeLinkId(String link) {
@@ -145,14 +137,10 @@ public class Grabber implements Closeable {
 		return "http://" + WWW_IMMOBILIENSCOUT24_DE + pageLink;
 	}
 
-	private static String buildExposeUrl(long exposeId) {
-		return "http://" + WWW_IMMOBILIENSCOUT24_DE + "/expose/" + exposeId;
-	}
-
 	private void processQuery(String urlStr) throws IOException {
 		Query query = new Query();
 		query.setQuery(urlStr);
-		_queryDAO.persist(query);
+		_immoDAO.getQueryDAO().persist(query);
 
 		List<String> pageInformation = extractPageInformation(urlStr);
 		if (pageInformation.isEmpty()) {
@@ -165,34 +153,12 @@ public class Grabber implements Closeable {
 
 	}
 
-	// private void testHibernate() {
-	// SessionFactory factory = HibernateUtils.getSessionFactory();
-	// Session session = factory.openSession();
-	// session.getTransaction().begin();
-	// String sql = "SELECT q.query_id, q.date_time, q.query FROM " +
-	// Query.class.getName() + " q";
-	// org.hibernate.Query hibQuery = session.createQuery(sql);
-	// List<Query> queries = hibQuery.list();
-	// queries.forEach(q -> System.out.println(q));
-	// session.close();
-	// }
-
-	// private void testSpringHibernate() {
-	//
-	// QueryDAO queryDAO = context.getBean(QueryDAO.class);
-	//
-	// Query query = new Query();
-	// query.setQuery("test2");
-	//
-	// queryDAO.persist(query);
-	//
-	// System.out.println("Query::" + query + " id: " + query.getQueryId());
-	// }
-
 	public static void main(String[] args) throws IOException {
 		Grabber grabber = new Grabber();
 		grabber.init();
-		String urlStr = "http://www.immobilienscout24.de/Suche/S-T/Wohnung-Kauf/Baden-Wuerttemberg/Karlsruhe/Daxlanden";
+		// String urlStr =
+		// "http://www.immobilienscout24.de/Suche/S-T/Wohnung-Kauf/Baden-Wuerttemberg/Karlsruhe/Daxlanden";
+		String urlStr = "http://www.immobilienscout24.de/Suche/S-T/Wohnung-Kauf/Baden-Wuerttemberg";
 		try {
 			grabber.processQuery(urlStr);
 		} finally {

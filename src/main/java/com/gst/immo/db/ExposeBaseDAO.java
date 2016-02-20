@@ -31,11 +31,23 @@ public class ExposeBaseDAO {
 		session.close();
 	}
 
-	public ExposeBase get(long exposeBaseId ) {
+	public ExposeBase get(long exposeBaseId) {
 		Session session = this.sessionFactory.openSession();
 		ExposeBase exposeBase = session.get(ExposeBase.class, exposeBaseId);
 		session.close();
 		return exposeBase;
 	}
+
+	// private void testHibernate() {
+	// SessionFactory factory = HibernateUtils.getSessionFactory();
+	// Session session = factory.openSession();
+	// session.getTransaction().begin();
+	// String sql = "SELECT q.query_id, q.date_time, q.query FROM " +
+	// Query.class.getName() + " q";
+	// org.hibernate.Query hibQuery = session.createQuery(sql);
+	// List<Query> queries = hibQuery.list();
+	// queries.forEach(q -> System.out.println(q));
+	// session.close();
+	// }
 
 }
