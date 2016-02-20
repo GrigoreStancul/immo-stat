@@ -20,7 +20,7 @@ import javax.persistence.TemporalType;
 @Table(name = "expose_base", catalog = "immo")
 public class ExposeBase implements java.io.Serializable {
 
-	private int exposeId;
+	private long exposeId;
 	private Date updateTime;
 	private String htmlPage;
 	private Set<SubqueryToExpose> subqueryToExposes = new HashSet<SubqueryToExpose>(0);
@@ -28,7 +28,7 @@ public class ExposeBase implements java.io.Serializable {
 	public ExposeBase() {
 	}
 
-	public ExposeBase(int exposeId, Date updateTime) {
+	public ExposeBase(long exposeId, Date updateTime) {
 		this.exposeId = exposeId;
 		this.updateTime = updateTime;
 	}
@@ -43,16 +43,16 @@ public class ExposeBase implements java.io.Serializable {
 	@Id
 
 	@Column(name = "expose_id", unique = true, nullable = false)
-	public int getExposeId() {
+	public long getExposeId() {
 		return this.exposeId;
 	}
 
-	public void setExposeId(int exposeId) {
+	public void setExposeId(long exposeId) {
 		this.exposeId = exposeId;
 	}
 
 	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name = "update_time", nullable = false, length = 19)
+	@Column(name = "update_time", nullable = false, insertable = false, length = 19)
 	public Date getUpdateTime() {
 		return this.updateTime;
 	}

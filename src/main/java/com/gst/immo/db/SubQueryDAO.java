@@ -6,12 +6,12 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 
 /**
- * Home object for domain model class Query.
+ * Home object for domain model class SubQuery.
  * 
- * @see com.gst.immo.db.Query
+ * @see com.gst.immo.db.SubQuery
  * @author Hibernate Tools
  */
-public class QueryDAO {
+public class SubQueryDAO {
 
 	private SessionFactory sessionFactory;
 
@@ -23,27 +23,12 @@ public class QueryDAO {
 		this.sessionFactory = sessionFactory;
 	}
 
-	public void persist(Query query) {
+	public void persist(SubQuery subQuery) {
 		Session session = this.sessionFactory.openSession();
 		Transaction tx = session.beginTransaction();
-		session.persist(query);
+		session.persist(subQuery);
 		tx.commit();
 		session.close();
-	}
-
-	public void remove(Query query) {
-		Session session = this.sessionFactory.openSession();
-		Transaction tx = session.beginTransaction();
-		session.delete(query);
-		tx.commit();
-		session.close();
-	}
-
-	public Query findById(int id) {
-		Session session = this.sessionFactory.openSession();
-		Query query = session.get(Query.class, id);
-		session.close();
-		return query;
 	}
 
 }

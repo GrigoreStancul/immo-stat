@@ -68,7 +68,7 @@ public class SubQuery implements java.io.Serializable {
 	}
 
 	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name = "date_time", nullable = false, length = 19)
+	@Column(name = "date_time", nullable = false, insertable = false, length = 19)
 	public Date getDateTime() {
 		return this.dateTime;
 	}

@@ -6,35 +6,13 @@
         http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
         http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
 
-	<!-- <mvc:annotation-driven /> -->
-	<!-- <mvc:resources mapping="/resources/**" location="/resources/" /> -->
-	<!-- <context:component-scan base-package="net.codejava.spring" /> -->
-
 	<bean id="dataSource"
 		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
-		<property name="url" value="jdbc:mysql://localhost:3306/immo" />
+		<property name="url" value="jdbc:mysql://localhost:3306/immo?useSSL=false" />
 		<property name="username" value="root" />
 		<property name="password" value="root" />
 	</bean>
-	<!-- Hibernate 3 Annotation SessionFactory Bean definition -->
-
-	<!-- <bean id="hibernate3AnnotatedSessionFactory" -->
-	<!-- class="org.springframework.orm.hibernate4.HibernateTransactionManager"> -->
-	<!-- <property name="dataSource" ref="dataSource" /> -->
-	<!-- <property name="annotatedClasses"> -->
-	<!-- <list> -->
-	<!-- <value>com.gst.immo.db.Query</value> -->
-	<!-- </list> -->
-	<!-- </property> -->
-	<!-- <property name="hibernateProperties"> -->
-	<!-- <props> -->
-	<!-- <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop> -->
-	<!-- <prop key="hibernate.current_session_context_class">thread</prop> -->
-	<!-- <prop key="hibernate.show_sql">false</prop> -->
-	<!-- </props> -->
-	<!-- </property> -->
-	<!-- </bean> -->
 
 	<bean id="sessionFactory"
 		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
@@ -43,6 +21,15 @@
 	</bean>
 
 	<bean id="queryDAO" class="com.gst.immo.db.QueryDAO">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="subQueryDAO" class="com.gst.immo.db.SubQueryDAO">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="exposeBaseDAO" class="com.gst.immo.db.ExposeBaseDAO">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="subqueryToExposeDAO" class="com.gst.immo.db.SubqueryToExposeDAO">
 		<property name="sessionFactory" ref="sessionFactory" />
 	</bean>
 </beans>

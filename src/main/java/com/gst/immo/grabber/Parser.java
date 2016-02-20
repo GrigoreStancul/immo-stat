@@ -169,8 +169,7 @@ public class Parser implements Closeable {
 
    private void processExpose( long exposeId ) throws IOException {
       _log.info("Start parsing exposeId: " + exposeId);
-      String exposeUrl = buildExposeUrl(exposeId);
-      parseExposePage(exposeUrl);
+//parseExposePage(exposeUrl);
    }
 
    private static Long parseExposeLinkId( String link ) {
@@ -188,10 +187,6 @@ public class Parser implements Closeable {
 
    private static String buildSearchUrlFromPageLink( String pageLink ) {
       return "http://" + WWW_IMMOBILIENSCOUT24_DE + pageLink;
-   }
-
-   private static String buildExposeUrl( long exposeId ) {
-      return "http://" + WWW_IMMOBILIENSCOUT24_DE + "/expose/" + exposeId;
    }
 
    public static void main( String[] args ) throws IOException {
