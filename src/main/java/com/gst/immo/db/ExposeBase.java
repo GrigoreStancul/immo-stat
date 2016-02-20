@@ -20,6 +20,10 @@ import javax.persistence.TemporalType;
 @Table(name = "expose_base", catalog = "immo")
 public class ExposeBase implements java.io.Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private long exposeId;
 	private Date updateTime;
 	private String htmlPage;

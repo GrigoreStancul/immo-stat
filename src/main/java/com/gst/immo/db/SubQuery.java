@@ -24,6 +24,10 @@ import javax.persistence.TemporalType;
 @Table(name = "sub_query", catalog = "immo")
 public class SubQuery implements java.io.Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private int subQueryId;
 	private Query query;
 	private Date dateTime;

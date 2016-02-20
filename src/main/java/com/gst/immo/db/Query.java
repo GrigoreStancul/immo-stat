@@ -22,6 +22,10 @@ import javax.persistence.TemporalType;
 @Table(name = "query", catalog = "immo")
 public class Query implements java.io.Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private int queryId;
 	private Date dateTime;
 	private String query;

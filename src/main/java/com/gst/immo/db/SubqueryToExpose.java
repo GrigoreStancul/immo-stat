@@ -21,6 +21,10 @@ import javax.persistence.TemporalType;
 @Table(name = "subquery_to_expose", catalog = "immo")
 public class SubqueryToExpose implements java.io.Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private int id;
 	private ExposeBase exposeBase;
 	private SubQuery subQuery;
