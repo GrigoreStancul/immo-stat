@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated Feb 20, 2016 1:55:06 PM by Hibernate Tools 4.3.1.Final -->
+<hibernate-mapping>
+    <class name="com.gst.immo.db.SubqueryToExpose" table="subquery_to_expose" catalog="immo" optimistic-lock="version">
+        <id name="id" type="int">
+            <column name="id" />
+            <generator class="identity" />
+        </id>
+        <many-to-one name="exposeBase" class="com.gst.immo.db.ExposeBase" fetch="select">
+            <column name="fk_expose_id" not-null="true" />
+        </many-to-one>
+        <many-to-one name="subQuery" class="com.gst.immo.db.SubQuery" fetch="select">
+            <column name="fk_subquery_id" not-null="true" />
+        </many-to-one>
+        <property name="status" type="string">
+            <column name="status" length="45" not-null="true" />
+        </property>
+        <property name="dateTime" type="timestamp">
+            <column name="date_time" length="19" not-null="true" />
+        </property>
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<!-- Generated Feb 20, 2016 1:55:06 PM by Hibernate Tools 4.3.1.Final -->
+<hibernate-mapping>
+    <class name="com.gst.immo.db.Query" table="query" catalog="immo" optimistic-lock="version">
+        <id name="queryId" type="int">
+            <column name="query_id" />
+            <generator class="identity" />
+        </id>
+        <property name="dateTime" type="timestamp">
+            <column name="date_time" length="19" not-null="true" />
+        </property>
+        <property name="query" type="string">
+            <column name="query" length="400" />
+        </property>
+        <set name="subQueries" table="sub_query" inverse="true" lazy="true" fetch="select">
+            <key>
+                <column name="fk_query_id" not-null="true" />
+            </key>
+            <one-to-many class="com.gst.immo.db.SubQuery" />
+        </set>
+    </class>
+</hibernate-mapping>

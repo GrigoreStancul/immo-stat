@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-reverse-engineering PUBLIC "-//Hibernate/Hibernate Reverse Engineering DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-reverse-engineering-3.0.dtd" >
+
+<hibernate-reverse-engineering>
+	<type-mapping>
+		<sql-type jdbc-type="VARCHAR" hibernate-type="string"></sql-type>
+		<sql-type jdbc-type="INTEGER" hibernate-type="int"
+			not-null="true">
+		</sql-type>
+		<sql-type jdbc-type="LONGVARCHAR" hibernate-type="string"
+			not-null="false">
+		</sql-type>
+		<sql-type jdbc-type="TIMESTAMP" hibernate-type="timestamp"
+			length="19" not-null="true">
+		</sql-type>
+	</type-mapping>
+	<table-filter match-name="expose_base" match-catalog="immo"></table-filter>
+	<table-filter match-name="query" match-catalog="immo"></table-filter>
+	<table-filter match-name="sub_query" match-catalog="immo"></table-filter>
+	<table-filter match-name="subquery_to_expose"
+		match-catalog="immo">
+	</table-filter>
+</hibernate-reverse-engineering>
