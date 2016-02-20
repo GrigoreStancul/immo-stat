@@ -92,7 +92,7 @@ public class Grabber implements Closeable {
 
 	private void processExpose(SubQuery subQuery, long exposeId) {
 		_exposeNumber++;
-		_log.info("Start parsing " + _exposeNumber + " expose. ExposeId: " + exposeId);
+		_log.info("Start processing " + _exposeNumber + " expose. ExposeId: " + exposeId);
 		ExposeBase exposeBase = _immoDAO.getExposeBaseDAO().get(exposeId);
 
 		String status = "allreadyexists";

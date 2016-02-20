@@ -23,6 +23,7 @@ public class Parser implements Closeable {
 	private CSVWriter _csvWriter;
 	private ClassPathXmlApplicationContext _springContext;
 	private ImmoDAO _immoDAO;
+	private int _exposeNumber = 0;
 
 	public void init() throws IOException {
 		File targetDir = new File("logs");
@@ -44,10 +45,14 @@ public class Parser implements Closeable {
 	}
 
 	private void parseExposePage(ExposeBase exposeBase) throws IOException {
+		_exposeNumber++;
+		if (_exposeNumber % 100 == 0) {
+			_log.info("Start processing " + _exposeNumber + " expose.");
+		}
 		String exposeUrl = Grabber.buildExposeUrl(exposeBase.getExposeId());
 		Document doc = Jsoup.parse(exposeBase.getHtmlPage(), exposeUrl);
 
-		String id = getSimpleFieldData(doc, "ul.is24-ex-id");
+		String scoutId = getSimpleFieldData(doc, "ul.is24-ex-id");
 		String name = getSimpleFieldData(doc, "h1#expose-title");
 		String price = getSimpleFieldData(doc, "div.is24qa-kaufpreis");
 		String rooms = getSimpleFieldData(doc, "div.is24qa-zi");
@@ -62,18 +67,8 @@ public class Parser implements Closeable {
 
 		wohnflaeche = proc_wohnflaeche_checkMsquared(wohnflaeche);
 		address = proc_address(address);
-		_csvWriter.writeNext(new String[] { id, name, exposeUrl, price, rooms, wohnflaeche, grundstueck, haustyp,
+		_csvWriter.writeNext(new String[] { scoutId, name, exposeUrl, price, rooms, wohnflaeche, grundstueck, haustyp,
 				hausgeld, baujahr, address, breadCrumb });
-
-		// System.out.println("ID: " + id);
-		// System.out.println("Price: " + price);
-		// System.out.println("Rooms: " + rooms);
-		// System.out.println("Wohnflaeche: " + wohnflaeche);
-		// System.out.println("Grundstueck: " + grundstueck);
-		// System.out.println("Haustyp: " + haustyp);
-		// System.out.println("Address: " + address);
-		// System.out.println("Hausgeld: " + hausgeld);
-		// System.out.println("Baujahr: " + baujahr);
 	}
 
 	private String getBreadCrumb(Document doc) {
@@ -118,8 +113,8 @@ public class Parser implements Closeable {
 	}
 
 	private void processDatabaseData() throws IOException {
-		ExposeBase exposeBase = _immoDAO.getExposeBaseDAO().get(33140150);
-		parseExposePage(exposeBase);
+		_immoDAO.getExposeBaseDAO().forEach(e -> parseExposePage(e));
+		// ExposeBase exposeBase = _immoDAO.getExposeBaseDAO().get(33140150);
 	}
 
 	public static void main(String[] args) throws IOException {
